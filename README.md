@@ -21,7 +21,7 @@ The overview of the architecture is shown below
 
 ## UML Sequence flow
 The high level sequence flow is shown below
-![Project Logo](assets/Sequence Diagram.drawio.png)
+![Project Logo](assets/Sequence_Diagram.drawio.png)
 
 ---
 
