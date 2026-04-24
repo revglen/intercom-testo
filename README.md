@@ -9,7 +9,7 @@ Intercom’s current Fin Agent API docs say the API is for accessing Fin program
 
 ## Use Case
 This is a fraud detection system that flags a suspicious transaction. The FastAPI service automatically creates an Intercom contact for the customer, opens a conversation in the Intercom inbox for the support team to review, and listens via webhook for when the analyst closes or resolves the case which feeds the outcome back to your system.
-The steps to execute the use case can be found here: [Link Text](use_case_testing_steps.md). This should be executing after following the steps listed in this guide else the use case will not work.
+The steps to execute the use case can be found here: [Use case](use_case_testing_steps.md). This should be executing after following the steps listed in this guide else the use case will not work.
 
 ---
 
@@ -24,6 +24,9 @@ The high level sequence flow is shown below
 ![Project Logo](assets/Sequence_Diagram.drawio.png)
 
 ---
+
+## Development Methodology
+The development methodology of how the development of this app was established in [Document](assets/Intercom_API_Development_Methodology_v1.pdf)
 
 
 ## Project Structure
