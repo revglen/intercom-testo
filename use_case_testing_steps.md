@@ -1,6 +1,6 @@
 # Postman Testing Guide
 
-End-to-end test guide for the Intercom Fraud Detection POC. Covers contact creation, conversation management, webhook simulation, and edge case validation.
+This is an end-to-end test guide for the Intercom Fraud Detection POC. Covers contact creation, conversation management and webhook simulation.
 
 ---
 
@@ -8,8 +8,8 @@ End-to-end test guide for the Intercom Fraud Detection POC. Covers contact creat
 
 - FastAPI server running locally (`python fin_agent.py`)
 - Postman installed — [download here](https://www.postman.com/downloads/)
-- `.env` file configured with a valid `FIN_AGENT_ACCESS_TOKEN`
-- *(For webhook tests only)* ngrok running and registered in Intercom Developer Hub
+- `.env` file configured with a valid `FIN_AGENT_ACCESS_TOKEN`. Please check README.md
+- *(For webhook tests only)* ngrok running and registered in Intercom Developer Hub. This is crucial.
 
 ---
 
@@ -22,9 +22,9 @@ End-to-end test guide for the Intercom Fraud Detection POC. Covers contact creat
 3. Drag and drop `Intercom_Fraud_POC.postman_collection.json`
 4. Click **Import**
 
-The collection will appear in your left sidebar with all requests pre-configured.
+The collection will appear in the left sidebar with all requests pre-configured.
 
-### B. Confirm the base_url variable
+### B. Confirm of Postman variables
 
 In the collection sidebar, click the three dots next to the collection name → **Edit** → **Variables** tab.
 
@@ -41,7 +41,7 @@ In the collection sidebar, click the three dots next to the collection name → 
 
 ### C. Start your FastAPI server
 
-```bash
+```bash or cmd
 python fin_agent.py
 ```
 
@@ -50,12 +50,13 @@ Wait for the following line to appear before sending any requests:
 ```
 INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
 ```
+This line indicates that the server is up and running.
 
 ---
 
-## Happy Path — Run in Order
+## Run the test in the following sequence
 
-> **Important:** Steps must be run in sequence. `contact_id` is auto-saved from Step 2 and injected into Step 3. `conversation_id` is auto-saved from Step 3 and injected into Step 4. No manual copy-paste needed.
+> **Important:** Steps must be run in the following order. `contact_id` is auto-saved from Step 2 and injected into Step 3. `conversation_id` is auto-saved from Step 3 and injected into Step 4. This avoids any copy-paste process as the values are auto-populated from the API calls.
 
 ---
 
@@ -100,13 +101,13 @@ Creates a new Intercom contact representing the flagged customer. The `contact_i
 - Role equals `user`
 - Response time under 3 seconds
 
-> After this step, open the collection **Variables** tab and confirm `contact_id` is populated. If it is empty, the `FIN_AGENT_ACCESS_TOKEN` in your `.env` is invalid or missing.
+> After this step, open the collection **Variables** tab and confirm `contact_id` is populated. If it is empty, the `FIN_AGENT_ACCESS_TOKEN` in the `.env` is invalid or missing.
 
 ---
 
 ### Step 2b — Verify contact by email
 
-Searches Intercom for the contact by email to confirm it was created correctly. Also validates the search endpoint.
+One can search Intercom for the contact by email to confirm whether if it was created correctly. This will also validate the search endpoint.
 
 | | |
 |---|---|
@@ -139,7 +140,7 @@ Opens a new Intercom conversation for the flagged customer. Uses `{{contact_id}}
     "type": "user",
     "id": "{{contact_id}}"
   },
-  "body": "FRAUD ALERT: Suspicious transaction detected on account fraud-cust-001. Transaction amount: €4,850. Location: Lagos, Nigeria. Risk score: 0.94. Please review immediately."
+  "body": "FRAUD ALERT: Suspicious transaction detected on account fraud-cust-001. Transaction amount: €4,850. Location: Lalox, Kamus <fiction city and country>. Risk score: 0.94. Please review immediately."
 }
 ```
 
@@ -150,7 +151,7 @@ Opens a new Intercom conversation for the flagged customer. Uses `{{contact_id}}
 - Response contains `created_at` timestamp
 - Response time under 5 seconds
 
-> After this step, open your Intercom sandbox inbox — you should see the conversation appear with the fraud alert message.
+> After this step, open the Intercom sandbox inbox where one should see the conversation appear with the fraud alert message.
 
 ---
 
@@ -178,13 +179,13 @@ Posts an analyst decision reply to the open fraud conversation. Uses both `{{con
 - Reply posted successfully
 - Response is valid JSON
 
-> Verify in your Intercom inbox that the reply appears in the conversation thread.
+> Verify in the Intercom inbox that the reply appears in the conversation thread.
 
 ---
 
-### Step 5 — Simulate webhook (conversation closed)
+### Step 5 — Simulate the webhook to close conversation
 
-Simulates Intercom firing a `conversation.admin.closed` webhook event to your endpoint. In production, this fires automatically when an analyst closes the case in the Intercom inbox.
+Simulates Intercom firing a `conversation.admin.closed` webhook event to your endpoint.
 
 | | |
 |---|---|
@@ -215,13 +216,13 @@ Simulates Intercom firing a `conversation.admin.closed` webhook event to your en
 - Response message confirms receipt
 - Response time under 2 seconds
 
-> **Real end-to-end webhook test:** Replace `base_url` with your ngrok URL and register it in Intercom's Developer Hub under Settings → Integrations → Developer Hub → Your App → Webhooks. Then close the conversation manually in your Intercom sandbox — the real webhook fires automatically to your endpoint.
+> **Real end-to-end webhook test:** Replace `base_url` with the ngrok URL and register it in Intercom's Developer Hub under Settings → Integrations → Developer Hub → Your App → Webhooks. Then close the conversation manually in your Intercom sandbox — the real webhook fires automatically to your endpoint.
 
 ---
 
 ### Step 5b — Webhook HEAD verification
 
-Intercom sends a HEAD request to verify your endpoint is reachable before registering it in the Developer Hub. Confirms your endpoint responds correctly.
+Intercom sends a HEAD request to verify the endpoint is reachable before registering it in the Developer Hub. Confirms the endpoint responds correctly.
 
 | | |
 |---|---|
@@ -248,83 +249,6 @@ Retrieves the contact by ID to confirm the full record is intact in Intercom aft
 
 ---
 
-## Edge Case Tests — Negative Paths
-
-These tests validate that the API handles bad input gracefully. Run these independently — they do not need to be run in sequence.
-
----
-
-### E1 — Duplicate contact (expect 409)
-
-Re-sends the same email as Step 2. Confirms duplicate handling works correctly.
-
-| | |
-|---|---|
-| Method | `POST` |
-| Endpoint | `/contacts/` |
-| Expected status | `409` (or response with `status_code: 409`) |
-| Expected body | `{"message": "Contact already exists", "status_code": 409}` |
-
-> Run this **after** Step 2 to ensure the contact already exists in Intercom.
-
----
-
-### E2 — Missing email field (expect 422)
-
-Omits the required `email` field. Pydantic rejects the request before it reaches the router.
-
-| | |
-|---|---|
-| Method | `POST` |
-| Endpoint | `/contacts/` |
-| Expected status | `422 Unprocessable Entity` |
-
-**Request body:**
-```json
-{
-  "role": "user",
-  "external_id": "bad-001",
-  "name": "No Email User"
-}
-```
-
----
-
-### E3 — Invalid email format (expect 422)
-
-Sends a malformed email string. Pydantic's `EmailStr` validator rejects this automatically.
-
-| | |
-|---|---|
-| Method | `POST` |
-| Endpoint | `/contacts/` |
-| Expected status | `422 Unprocessable Entity` |
-
-**Request body:**
-```json
-{
-  "role": "user",
-  "external_id": "bad-002",
-  "email": "not-an-email",
-  "name": "Bad Email"
-}
-```
-
----
-
-### E4 — Empty webhook body (expect 200)
-
-Sends a POST to the webhook endpoint with no body. Confirms graceful handling — important because Intercom occasionally sends ping events with empty payloads.
-
-| | |
-|---|---|
-| Method | `POST` |
-| Endpoint | `/conversations/webhook` |
-| Expected status | `200` |
-| Expected body | `{"message": "Webhook received with empty body"}` |
-
----
-
 ## Run the Entire Collection at Once
 
 Use the **Collection Runner** to run all requests in a single pass:
@@ -333,7 +257,7 @@ Use the **Collection Runner** to run all requests in a single pass:
 2. Select **Run collection**
 3. Set **Iterations** to `1`
 4. Set **Delay** to `500ms` — this gives Intercom time to process between requests
-5. Click **Run Intercom Fraud Detection POC**
+5. Click **Run Intercom Fraud Detection Testo**
 
 The runner respects auto-saved variables — `contact_id` from Step 2 flows into Step 3, and `conversation_id` from Step 3 flows into Step 4. All 11 requests run in order and a pass/fail summary is shown at the end.
 
@@ -352,18 +276,3 @@ The runner respects auto-saved variables — `contact_id` from Step 2 flows into
 | Step 5 — Simulate webhook | 3 | All pass |
 | Step 5b — HEAD verification | 1 | All pass |
 | Step 6 — Final verify | 3 | All pass |
-| E2 — Missing email | 1 | 422 expected |
-| E3 — Invalid email | 1 | 422 expected |
-| E4 — Empty webhook | 2 | 200 expected |
-
----
-
-## Common Issues
-
-| Symptom | Cause | Fix |
-|---------|-------|-----|
-| `contact_id` variable is empty after Step 2 | Invalid Intercom token | Check `FIN_AGENT_ACCESS_TOKEN` in `.env` |
-| Step 3 fails with 400 | `contact_id` not populated | Re-run Step 2 first |
-| Webhook not received in real test | ngrok URL not registered | Register ngrok URL in Intercom Developer Hub |
-| 401 on any request | Token expired or wrong | Re-copy token from Intercom Developer Hub |
-| 422 on Step 3 | `contact_id` variable empty | Check Step 2 passed and variable was saved |
