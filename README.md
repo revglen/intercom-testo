@@ -9,7 +9,7 @@ Intercom’s current Fin Agent API docs say the API is for accessing Fin program
 
 ## Use Case
 This is a fraud detection system that flags a suspicious transaction. The FastAPI service automatically creates an Intercom contact for the customer, opens a conversation in the Intercom inbox for the support team to review, and listens via webhook for when the analyst closes or resolves the case which feeds the outcome back to your system.
-The steps to execute the use case can be found here: [Link Text](use_case_testing_steps.md)
+The steps to execute the use case can be found here: [Link Text](use_case_testing_steps.md). This should be executing after following the steps listed in this guide else the use case will not work.
 
 ---
 
@@ -29,6 +29,8 @@ The steps to execute the use case can be found here: [Link Text](use_case_testin
 └── .gitignore
 └── use_case_testing_steps.md   # This file contains the steps to run the use case
 ```
+The fin_agent.py was suppose to test the Fin Agent AI API but kept the file name. 
+In the future should there access be granted, this file will be adapted accordingly.
 
 ---
 
@@ -47,15 +49,17 @@ Make sure the following tools are installed before commencing:
 ## 1. Clone the Repository
 
 ```bash
-git clone <your-repo-url>
-cd <your-repo-folder>
+git https://github.com/revglen/intercom-testo.git
+cd intercom-testo
 ```
+This bring down the Repo to your system and create a new folder.
+Navigate to the this folder to start executing the test
 
 ---
 
 ## 2. Create a Virtual Environment
 
-It is strongly recommended to use a virtual environment to keep dependencies isolated.
+Creating a virtual environment is highly encouraged to keep dependencies isolated.
 
 **macOS / Linux**
 ```bash
@@ -66,22 +70,22 @@ source venv/bin/activate
 **Windows (Command Prompt)**
 ```cmd
 python -m venv venv
-venv\Scripts\activate.bat
+.\venv\Scripts\activate.bat
 ```
 
-**Windows (PowerShell)**
-```powershell
-python -m venv venv
-venv\Scripts\Activate.ps1
-```
-
-You should see `(venv)` appear at the start of your terminal prompt.
+After executing this command, one should see `(venv)` appearing at the start of the terminal prompt.
+This incase that the virtual environment is working. Next, the dependencies need to be installed.
 
 ---
 
 ## 3. Install Dependencies
+Run the below command to install the dependencies. If they are not installed, the test will fail to execute.
 
 ```bash
+pip install -r requirements.txt
+```
+
+```cmd
 pip install -r requirements.txt
 ```
 
@@ -90,7 +94,7 @@ This installs:
 - **FastAPI** — the web framework
 - **Uvicorn** — ASGI server to run FastAPI
 - **httpx** — async HTTP client for outbound API calls
-- **requests** — sync HTTP client (used in contact creation)
+- **requests** — sync HTTP client which is primarily used for contact creation
 - **python-dotenv** — loads `.env` file into environment variables
 - **pydantic** — data validation and serialisation
 - **pydantic[email]** — email validation support
@@ -105,14 +109,17 @@ Create a `.env` file in the root of the project (the same folder as `fin_agent.p
 touch .env
 ```
 
+```cmd
+echo > .env
+```
+
+This file can also be created in Windows Explorer. 
+
 Add the following variables:
 
 ```env
 # Your Intercom Access Token (from Developer Hub → Authentication)
 FIN_AGENT_ACCESS_TOKEN=your_intercom_access_token_here
-
-# Secret used to validate incoming Intercom webhooks
-WEBHOOK_SECRET=your_webhook_secret_here
 
 # Intercom base API URL (do not change unless using a proxy)
 INTERCOM_URL=https://api.intercom.io
@@ -127,23 +134,23 @@ INTERCOM_VERSION=2.14
 > 3. Create a new app (or open an existing one)
 > 4. Go to **Authentication** and copy your **Access Token**
 
-> **Important:** The `.env` file is listed in `.gitignore` and will not be committed. Never hardcode your token directly in source code.
+> **Important:** The `.env` file is listed in `.gitignore` and will not be committed.
 
 ---
 
 ## 5. Run the Application
 
-```bash
+```bash or cmd
 python fin_agent.py
 ```
 
 Or using uvicorn directly:
 
-```bash
+```bash or cmd
 uvicorn fin_agent:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-The `--reload` flag automatically restarts the server when you change a file — useful during development.
+The `--reload` flag automatically restarts the server when one makes changes in a file which is useful during development.
 
 You should see output like:
 
@@ -153,17 +160,19 @@ INFO:     Started reloader process
 INFO:     Intercom configuration is completed...
 ```
 
+This indicates that the server is up and running and there are no issues.
+
 ---
 
 ## 6. Verify the Server is Running
 
-Open your browser or run:
+Open the browser or run:
 
-```bash
+```bash or cmd
 curl http://localhost:8000/health
 ```
 
-Expected response:
+The expected response would be:
 
 ```json
 {
@@ -185,7 +194,8 @@ FastAPI automatically generates interactive documentation. With the server runni
 
 ## 8. Install and Configure ngrok (for Webhooks)
 
-Intercom webhooks need to reach your local server over a public HTTPS URL. **ngrok** creates a secure tunnel from the internet to your `localhost`.
+Intercom webhooks need to reach the local server over the public HTTPS URL. 
+**ngrok** creates a secure tunnel from the internet to the `localhost`.
 
 ### Install ngrok
 
@@ -281,7 +291,7 @@ Copy the `https://` forwarding URL — this is your public endpoint.
   "role": "user",
   "external_id": "cust-001",
   "email": "glen@example.com",
-  "name": "Glen Saldanha"
+  "name": "Rev Glen Saldanha"
 }
 ```
 
@@ -339,6 +349,6 @@ Press `CTRL + C` in the terminal running uvicorn, and `CTRL + C` in the terminal
 
 To deactivate the virtual environment when done:
 
-```bash
+```bash or cmd
 deactivate
 ```
