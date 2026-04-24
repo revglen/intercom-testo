@@ -13,6 +13,19 @@ The steps to execute the use case can be found here: [Link Text](use_case_testin
 
 ---
 
+## Overview of Architecture
+The overview of the architecture is shown below
+![Project Logo](assets/Intercom_Testo_Architecture.png)
+
+---
+
+## UML Sequence flow
+The high level sequence flow is shown below
+![Project Logo](assets/Sequence Diagram.drawio.png)
+
+---
+
+
 ## Project Structure
 
 ```
